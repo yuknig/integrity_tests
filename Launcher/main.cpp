@@ -33,6 +33,16 @@ struct RunParams {
     std::string m_exe_args;
 };
 
+void LogParams(const RunParams& params) {
+    std::cout << "Run parameters:\n";
+    std::cout << "  run_as_admin=" << params.m_run_as_admin << std::endl;
+    if (params.m_run_as_admin)
+        std::cout << "  do_logon=" << params.m_do_logon << std::endl;
+    std::cout << "  integrity=" << IntegrityEnumToString(params.m_run_integrity) << std::endl;
+    std::cout << "  exe='" << params.m_exe << "'" << std::endl;
+    std::cout << "  exe args='" << params.m_exe_args << "'" << std::endl;
+}
+
 void RestartSelfAsAdmin(const std::string& cmd_args, bool logon_in_console) {
     fs::path exe_path = GetCurrentExePath();
     const std::wstring dir = exe_path.parent_path();
@@ -64,13 +74,7 @@ int main(int argc, char* argv[]) {
 
     const CmdParams cmd(argc, argv);
     const RunParams params(cmd);
-    std::cout << "Run parameters:\n";
-    std::cout << "  run_as_admin=" << params.m_run_as_admin << std::endl;
-    if (params.m_run_as_admin)
-        std::cout << "  do_logon=" << params.m_do_logon << std::endl;
-    std::cout << "  integrity=" << IntegrityEnumToString(params.m_run_integrity) << std::endl;
-    std::cout << "  exe='" << params.m_exe << "'" << std::endl;
-    std::cout << "  exe args='" << params.m_exe_args << "'" << std::endl;
+    LogParams(params);
 
     std::cout << "Trying to create process..\n" << std::flush;
     if (params.m_run_as_admin && !IsAdministrator()) {
