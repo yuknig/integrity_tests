@@ -31,17 +31,28 @@ struct RunParams {
     std::string m_exe_args;
 };
 
-void RestartSelfAsAdmin(const std::string& cmd_args) {
-    auto logon = LogonInteractively();
-    if (!logon)
-        throw std::runtime_error("failed to logon");
-
+void RestartSelfAsAdmin(const std::string& cmd_args, bool logon_in_console) {
     fs::path exe_path = GetCurrentExePath();
-    ShellExecAsUser(static_cast<HANDLE>(logon->m_logon_token),
-                    logon->m_user.data(),
-                    exe_path.parent_path().c_str(),
-                    exe_path.filename().c_str(),
-                    ToUnicode(cmd_args).c_str());
+    const std::wstring dir = exe_path.parent_path();
+    const std::wstring app = exe_path.filename();
+    const std::wstring arg = ToUnicode(cmd_args);
+
+    if (logon_in_console) {
+        auto logon = LogonInteractively();
+        if (!logon)
+            throw std::runtime_error("failed to logon");
+
+        ShellExecAsUser(static_cast<HANDLE>(logon->m_logon_token),
+                        logon->m_user.data(),
+                        dir.c_str(),
+                        app.c_str(),
+                        arg.c_str());
+    }
+    else {
+        ShellExecAsCurUser(dir.c_str(),
+                           app.c_str(),
+                           arg.c_str());
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -62,7 +73,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Restarting launcher as admin...\n";
         auto args = cmd.ToMap();
         args.erase("run_as_admin");
-        RestartSelfAsAdmin(CmdParams(args).ToString());
+        RestartSelfAsAdmin(CmdParams(args).ToString(), false);
     }
     else {
         fs::path exe_path = GetCurrentExePath();

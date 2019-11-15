@@ -182,6 +182,22 @@ void ShellExecAsUser(const HANDLE& token,
     CHECK(ShellExecuteExW(&sei));
 }
 
+void ShellExecAsCurUser(const wchar_t* dir,
+                        const wchar_t* app_name,
+                        const wchar_t* app_params) {
+    SHELLEXECUTEINFOW sei = {};
+    sei.cbSize = sizeof(sei);
+    sei.fMask = 0;
+    sei.hwnd = NULL;
+    sei.lpVerb = L"runas";
+    sei.lpFile = app_name;
+    sei.lpParameters = app_params;
+    sei.lpDirectory = dir;
+    sei.nShow = SW_NORMAL;
+    sei.hInstApp = NULL;
+    CHECK(ShellExecuteExW(&sei));
+}
+
 void CreateProcAs(const HANDLE& token,
                   const wchar_t* cmd) {
 
