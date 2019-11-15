@@ -15,6 +15,7 @@ struct RunParams {
             throw std::runtime_error("missing parameter 'exe'");
 
         m_run_as_admin = config.ParamExists("run_as_admin");
+        m_do_logon = config.ParamExists("do_logon");
 
         if (config.ParamExists("integrity"))
             m_run_integrity = IntegrityStringToEnum(config.GetParam("integrity"));
@@ -26,6 +27,7 @@ struct RunParams {
     }
 
     bool m_run_as_admin = false;
+    bool m_do_logon = false;
     IntegrityLevel m_run_integrity = IntegrityLevel::Other;
     std::string m_exe;
     std::string m_exe_args;
@@ -64,6 +66,8 @@ int main(int argc, char* argv[]) {
     const RunParams params(cmd);
     std::cout << "Run parameters:\n";
     std::cout << "  run_as_admin=" << params.m_run_as_admin << std::endl;
+    if (params.m_run_as_admin)
+        std::cout << "  do_logon=" << params.m_do_logon << std::endl;
     std::cout << "  integrity=" << IntegrityEnumToString(params.m_run_integrity) << std::endl;
     std::cout << "  exe='" << params.m_exe << "'" << std::endl;
     std::cout << "  exe args='" << params.m_exe_args << "'" << std::endl;
@@ -73,7 +77,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Restarting launcher as admin...\n";
         auto args = cmd.ToMap();
         args.erase("run_as_admin");
-        RestartSelfAsAdmin(CmdParams(args).ToString(), false);
+        RestartSelfAsAdmin(CmdParams(args).ToString(), params.m_do_logon);
     }
     else {
         fs::path exe_path = GetCurrentExePath();
